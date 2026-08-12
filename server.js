@@ -16,11 +16,31 @@ await connectDB();
 
 const app = express();
 
-app.use(helmet());
-app.use(cors({
-  origin: process.env.CLIENT_URL?.split(",") || "http://localhost:5173",
-  credentials: true
-}));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://krishtalball-frontend.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: (origin, callback) => {
+      if (!origin) {
+        return callback(null, true);
+      }
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      console.log("Blocked CORS origin:", origin);
+      return callback(new Error(`CORS blocked: ${origin}`));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    optionsSuccessStatus: 204,
+  })
+);
 app.use(express.json());
 app.use(morgan("dev"));
 
